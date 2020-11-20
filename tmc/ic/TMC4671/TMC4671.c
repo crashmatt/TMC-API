@@ -11,10 +11,29 @@
 #define STATE_WAIT_INIT_TIME   2
 #define STATE_ESTIMATE_OFFSET  3
 
+#define TMC4671_SPI_TRANSFER	1
+
 // => SPI wrapper
+#if(TMC4671_SPI_TRANSFER == 1)
 extern uint8_t tmc4671_readwriteByte(uint8_t motor, uint8_t data, uint8_t lastTransfer);
+#endif
+extern uint8_t tmc4671_transfer(uint8_t motor, uint8_t address, uint32_t txdata, uint32_t* rxdata);
 // <= SPI wrapper
 
+#if(TMC4671_SPI_TRANSFER == 1)
+
+int32_t tmc4671_readInt(uint8_t motor, uint8_t address){
+	uint32_t rx_val = 0;
+	tmc4671_transfer(motor, address & 0x7F, 0, &rx_val);
+	return rx_val;
+}
+
+void tmc4671_writeInt(uint8_t motor, uint8_t address, int32_t value){
+	uint32_t rx_val = 0;
+	tmc4671_transfer(motor, address|0x80, value, &rx_val);
+}
+
+#else
 // spi access
 int32_t tmc4671_readInt(uint8_t motor, uint8_t address)
 {
@@ -47,6 +66,7 @@ void tmc4671_writeInt(uint8_t motor, uint8_t address, int32_t value)
 	tmc4671_readwriteByte(motor, 0xFF & (value>>8), false);
 	tmc4671_readwriteByte(motor, 0xFF & (value>>0), true);
 }
+#endif	//(TMC4671_SPI_TRANSFER == 1)
 
 uint16_t tmc4671_readRegister16BitValue(uint8_t motor, uint8_t address, uint8_t channel)
 {

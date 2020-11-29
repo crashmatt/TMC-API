@@ -28,21 +28,21 @@ TMC4671.showChipInfo
 
 " configure TMC4671 for a BLDC motor in open loop mode"
 
-" Motor type &  PWM configuration "
-TMC4671.writeRegister(TMC4671.registers.MOTOR_TYPE_N_POLE_PAIRS, 0x00030004)
-TMC4671.writeRegister(TMC4671.registers.PWM_POLARITIES, 0x00000000)
-TMC4671.writeRegister(TMC4671.registers.PWM_MAXCNT, int(0x00000F9F))
-TMC4671.writeRegister(TMC4671.registers.PWM_BBM_H_BBM_L, 0x00000505)
-TMC4671.writeRegister(TMC4671.registers.PWM_SV_CHOP, 0x00000007)
-
-" ADC configuration "
-TMC4671.writeRegister(TMC4671.registers.ADC_I_SELECT, 0x18000100)
-TMC4671.writeRegister(TMC4671.registers.dsADC_MCFG_B_MCFG_A, 0x00100010)
-TMC4671.writeRegister(TMC4671.registers.dsADC_MCLK_A, 0x20000000)
-TMC4671.writeRegister(TMC4671.registers.dsADC_MCLK_B, 0x00000000)
-TMC4671.writeRegister(TMC4671.registers.dsADC_MDEC_B_MDEC_A, int(0x014E014E))
-TMC4671.writeRegister(TMC4671.registers.ADC_I0_SCALE_OFFSET, 0x01008218)
-TMC4671.writeRegister(TMC4671.registers.ADC_I1_SCALE_OFFSET, 0x0100820A)
+# " Motor type &  PWM configuration "
+# TMC4671.writeRegister(TMC4671.registers.MOTOR_TYPE_N_POLE_PAIRS, 0x00030004)
+# TMC4671.writeRegister(TMC4671.registers.PWM_POLARITIES, 0x00000000)
+# TMC4671.writeRegister(TMC4671.registers.PWM_MAXCNT, int(0x00000F9F))
+# TMC4671.writeRegister(TMC4671.registers.PWM_BBM_H_BBM_L, 0x00000505)
+# TMC4671.writeRegister(TMC4671.registers.PWM_SV_CHOP, 0x00000007)
+# 
+# " ADC configuration "
+# TMC4671.writeRegister(TMC4671.registers.ADC_I_SELECT, 0x18000100)
+# TMC4671.writeRegister(TMC4671.registers.dsADC_MCFG_B_MCFG_A, 0x00100010)
+# TMC4671.writeRegister(TMC4671.registers.dsADC_MCLK_A, 0x20000000)
+# TMC4671.writeRegister(TMC4671.registers.dsADC_MCLK_B, 0x00000000)
+# TMC4671.writeRegister(TMC4671.registers.dsADC_MDEC_B_MDEC_A, int(0x014E014E))
+# TMC4671.writeRegister(TMC4671.registers.ADC_I0_SCALE_OFFSET, 0x01008218)
+# TMC4671.writeRegister(TMC4671.registers.ADC_I1_SCALE_OFFSET, 0x0100820A)
 
 " Open loop settings "
 TMC4671.writeRegister(TMC4671.registers.OPENLOOP_MODE, 0x00000000)
@@ -59,12 +59,12 @@ TMC4671.writeRegister(TMC4671.registers.MODE_RAMP_MODE_MOTION, TMC4671.registers
 
 " Rotate right "
 print("rotate right...")
-TMC4671.writeRegister(TMC4671.registers.OPENLOOP_VELOCITY_TARGET, 2000)
+TMC4671.writeRegister(TMC4671.registers.OPENLOOP_VELOCITY_TARGET, 30)
 time.sleep(3)
 
 " Rotate left "
 print("rotate left...")
-TMC4671.writeRegister(TMC4671.registers.OPENLOOP_VELOCITY_TARGET, -2000)
+TMC4671.writeRegister(TMC4671.registers.OPENLOOP_VELOCITY_TARGET, -30)
 time.sleep(6)
 
 " Stop "

@@ -54,19 +54,21 @@ TMC4671.writeRegister(TMC4671.registers.PHI_E_SELECTION, TMC4671.registers.PHI_E
 TMC4671.writeRegister(TMC4671.registers.PHI_E_EXT, 0)
 TMC4671.writeRegister(TMC4671.registers.UQ_UD_EXT, 0)
 
-print("start calibration...")
+print("start ADC calibration...")
 
 " calibrate_adc_offsets "
-measurementTime = 2.0
+measurementTime = 1.0
 measurements = 0
+adc_expected_offset = 32767
+adc_offset_limit = 5000
 
 lAdcI0Raw = list()
-lAdcI0Filt = list()
-lAdcI0Offset = list()
+# lAdcI0Filt = list()
+# lAdcI0Offset = list()
 
 lAdcI1Raw = list()
-lAdcI1Filt = list()
-lAdcI1Offset = list()
+# lAdcI1Filt = list()
+# lAdcI1Offset = list()
 
 startTime = time.time()
 TMC4671.writeRegister(TMC4671.registers.ADC_RAW_ADDR, 0)
@@ -81,23 +83,31 @@ while ((time.time() - startTime) <= measurementTime):
     #print("ADC_I1_Value: %d" % adc_i1)
     lAdcI0Raw.append(adc_i0)
     lAdcI1Raw.append(adc_i1)
-    
-    " filter offsets " 
-    adcI0Mean = np.mean(lAdcI0Raw)
-    lAdcI0Filt.append(adcI0Mean)
-    adcI1Mean = np.mean(lAdcI1Raw)
-    lAdcI1Filt.append(adcI1Mean)
 
-    " update offsets "
-    TMC4671.writeRegisterField(TMC4671.fields.ADC_I0_OFFSET, int(adcI0Mean))
-    TMC4671.writeRegisterField(TMC4671.fields.ADC_I1_OFFSET, int(adcI1Mean))
     
-    " read offsets "
-    lAdcI0Offset.append(TMC4671.readRegisterField(TMC4671.fields.ADC_I0_OFFSET))
-    lAdcI1Offset.append(TMC4671.readRegisterField(TMC4671.fields.ADC_I1_OFFSET))
+#     " read offsets "
+#     lAdcI0Offset.append(TMC4671.readRegisterField(TMC4671.fields.ADC_I0_OFFSET))
+#     lAdcI1Offset.append(TMC4671.readRegisterField(TMC4671.fields.ADC_I1_OFFSET))
 
-print("ADC_I0_Offset: %d" % TMC4671.readRegisterField(TMC4671.fields.ADC_I0_OFFSET))
-print("ADC_I1_Offset: %d" % TMC4671.readRegisterField(TMC4671.fields.ADC_I1_OFFSET))
+  " filter offsets " 
+  adcI0Mean = np.mean(lAdcI0Raw)
+  adcI1Mean = np.mean(lAdcI1Raw)
+
+  " update offsets "
+  TMC4671.writeRegisterField(TMC4671.fields.ADC_I0_OFFSET, int(adcI0Mean))
+  TMC4671.writeRegisterField(TMC4671.fields.ADC_I1_OFFSET, int(adcI1Mean))
+  
+adc_i0_offset = int(TMC4671.readRegisterField(TMC4671.fields.ADC_I0_OFFSET))
+adc_i1_offset = int(TMC4671.readRegisterField(TMC4671.fields.ADC_I1_OFFSET))
+
+print("ADC_I0_Offset: %d" % adc_i0_offset)
+print("ADC_I1_Offset: %d" % adc_i1_offset)
+
+if (abs(adc_i0_offset - adc_expected_offset) > adc_offset_limit:
+  print("ADC I0offset alrger than expected.  Stopping")
+
+if fabs(adc_i1_offset - adc_expected_offset) > adc_offset_limit:
+  print("ADC I0offset alrger than expected.  Stopping")
 
 myInterface.close()
 print("ready.")

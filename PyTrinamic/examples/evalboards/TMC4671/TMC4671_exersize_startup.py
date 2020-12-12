@@ -12,6 +12,7 @@ from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.evalboards.TMC4671_eval import TMC4671_eval
 from PyTrinamic.ic.TMC4671.TMC4671 import TMC4671 as TMC4671_IC
 from PyTrinamic.connections.uart_ic_interface import uart_ic_interface
+from asyncio.tasks import sleep
 
 
 def reject_outliers_2(data, m=2.):
@@ -418,12 +419,30 @@ def main():
         
 
       delta_time = now - start_time
-      
-        
-   
+
+  print("Starting exersize")
+                 
   TMC4671.writeRegister(TMC4671.registers.PID_VELOCITY_TARGET, 0)
-   
-   
+  TMC4671.writeRegister(TMC4671.registers.PID_VELOCITY_LIMIT, 12000)  
+  TMC4671.writeRegister(TMC4671.registers.PID_ACCELERATION_LIMIT, 1000)  
+  TMC4671.writeRegister(TMC4671.registers.PID_POSITION_ACTUAL, 0)
+#  TMC4671.writeRegister(TMC4671.registers.PID_POSITION_LIMIT_LOW, 0)
+
+  TMC4671.writeRegister(TMC4671.registers.MODE_RAMP_MODE_MOTION, TMC4671.registers.MOTION_MODE_POSITION)
+  
+  while(1):
+    velocity = TMC4671.readRegister(TMC4671.registers.PID_VELOCITY_ACTUAL, signed=True)
+    position = TMC4671.readRegister(TMC4671.registers.PID_POSITION_ACTUAL, signed=True)
+
+    print("position:", position, "  velocity:", velocity)
+    if(velocity < 50):
+      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)
+    else:
+      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 3000)
+
+
+    time.sleep(0.1)
+      
   # 
   # " ===== 5) make a testdrive ====="
   # 

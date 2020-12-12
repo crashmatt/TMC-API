@@ -442,8 +442,10 @@ def main():
     flux = (torque_flux & 0xFFFF)
     if flux & 0x8000:
       flux = flux - 0x10000
+      
+    pos_scaled = position / 256 
 
-    str = "pos:%8d vel:%4d tor:%+5d flux:%+5d" % (position,  velocity, torque, flux)
+    str = "pos:{:<9.1f} vel{:<5d} tor:{:<5d} flux:{:<5d}".format(pos_scaled,  velocity, torque, flux)
     print(str)
     if(velocity < 50):
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)
@@ -451,7 +453,6 @@ def main():
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 3000)
 
 
-    time.sleep(0.1)
       
   # 
   # " ===== 5) make a testdrive ====="

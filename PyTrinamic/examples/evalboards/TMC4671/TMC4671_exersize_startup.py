@@ -433,8 +433,18 @@ def main():
   while(1):
     velocity = TMC4671.readRegister(TMC4671.registers.PID_VELOCITY_ACTUAL, signed=True)
     position = TMC4671.readRegister(TMC4671.registers.PID_POSITION_ACTUAL, signed=True)
+    torque_flux = TMC4671.readRegister(TMC4671.registers.PID_TORQUE_FLUX_ACTUAL, signed=True)
 
-    print("position:", position, "  velocity:", velocity)
+    torque = (torque_flux >> 16) & 0xFFFF
+    if torque & 0x8000:
+      torque = torque - 0x10000
+    
+    flux = (torque_flux & 0xFFFF)
+    if flux & 0x8000:
+      flux = flux - 0x10000
+
+    str = "pos:%8d vel:%4d tor:%+5d flux:%+5d" % (position,  velocity, torque, flux)
+    print(str)
     if(velocity < 50):
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)
     else:

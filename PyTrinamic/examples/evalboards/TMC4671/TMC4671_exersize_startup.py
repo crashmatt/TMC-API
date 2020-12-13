@@ -455,11 +455,22 @@ def main():
       flux = flux - 0x10000
       
 # //    motor_rotation = position / (256 * encoderResolution)
-    motor_rotation = float(position) / ( float(1<<16) * polePairs)
-    drum_roation = motor_rotation * GEAR_RATIO
-    distance = drum_roation * (math.pi * drum_diam)
+    motor_position = float(position) / ( float(1<<16) * polePairs)
+    drum_position = motor_position * GEAR_RATIO
+    line_postion = drum_position * (math.pi * drum_diam)
+    
+    flux_mA = float(flux) * 225 / 256
+    torque_mA = float(torque) * 225 / 256
+    torque_mA = float(torque) * 225 / 256
+    torque_motor_Nm = torque_mA * 0.0001
+    torque_drum_Nm = torque_motor_Nm / GEAR_RATIO
+    force_line_N = torque_drum_Nm * (drum_diam * 0.5)
+    
+    motor_rev_rate = velocity  / ( polePairs * 60 ) #float(1<<16) * 
+    drum_rev_rate = motor_rev_rate * GEAR_RATIO
+    line_velocity = drum_rev_rate * math.pi * drum_diam
 
-    str = "ratio:{:<1.2f} drum_rot:{:<+3.1f} dist:{:<+2.2f} vel{:<5d} tor:{:<5d} flux:{:<5d}".format(GEAR_RATIO, drum_roation, distance,  velocity, torque, flux)
+    str = "dist:{:<+2.3f} vel{:<1.3f} tor:{:<+3.0f} flux:{:<5.0f}".format(line_postion,  line_velocity, force_line_N, flux_mA)
     print(str)
     if(velocity < 50):
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)

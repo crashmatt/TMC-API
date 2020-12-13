@@ -14,6 +14,8 @@ from PyTrinamic.ic.TMC4671.TMC4671 import TMC4671 as TMC4671_IC
 from PyTrinamic.connections.uart_ic_interface import uart_ic_interface
 from asyncio.tasks import sleep
 
+from Exersize import Exersize
+
 
 def reject_outliers_2(data, m=2.):
     d = np.abs(data - np.median(data))
@@ -303,8 +305,15 @@ def main():
   
   " ===== 1) base configuration ====="
   
+  DRIVER_TEETH = 24
+  IDLER_TEETH = 50
+  DRUM_TEETH = 60
+  
   polePairs = 7
   encoderResolution = 4096
+  drum_diam = 0.04
+  GEAR_RATIO = (DRIVER_TEETH * DRIVER_TEETH) / (IDLER_TEETH * DRUM_TEETH)
+  
   # 
   # " Motor type &  PWM configuration "
   # TMC4671.writeRegister(TMC4671.registers.MOTOR_TYPE_N_POLE_PAIRS, 0x00030000 | polePairs)
@@ -430,6 +439,8 @@ def main():
 
   TMC4671.writeRegister(TMC4671.registers.MODE_RAMP_MODE_MOTION, TMC4671.registers.MOTION_MODE_POSITION)
   
+  exersize = Exersize()
+  
   while(1):
     velocity = TMC4671.readRegister(TMC4671.registers.PID_VELOCITY_ACTUAL, signed=True)
     position = TMC4671.readRegister(TMC4671.registers.PID_POSITION_ACTUAL, signed=True)
@@ -443,9 +454,12 @@ def main():
     if flux & 0x8000:
       flux = flux - 0x10000
       
-    pos_scaled = position / 256 
+# //    motor_rotation = position / (256 * encoderResolution)
+    motor_rotation = float(position) / ( float(1<<16) * polePairs)
+    drum_roation = motor_rotation * GEAR_RATIO
+    distance = drum_roation * (math.pi * drum_diam)
 
-    str = "pos:{:<9.1f} vel{:<5d} tor:{:<5d} flux:{:<5d}".format(pos_scaled,  velocity, torque, flux)
+    str = "ratio:{:<1.2f} drum_rot:{:<+3.1f} dist:{:<+2.2f} vel{:<5d} tor:{:<5d} flux:{:<5d}".format(GEAR_RATIO, drum_roation, distance,  velocity, torque, flux)
     print(str)
     if(velocity < 50):
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)

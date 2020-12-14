@@ -15,7 +15,7 @@ from PyTrinamic.connections.uart_ic_interface import uart_ic_interface
 from asyncio.tasks import sleep
 
 from Exersize import Exersize
-
+from ExersizeMachine import ExersizeMachine
 
 def reject_outliers_2(data, m=2.):
     d = np.abs(data - np.median(data))
@@ -313,7 +313,25 @@ def main():
   encoderResolution = 4096
   drum_diam = 0.04
   GEAR_RATIO = (DRIVER_TEETH * DRIVER_TEETH) / (IDLER_TEETH * DRUM_TEETH)
+
+  print("GEAR_RATIO:", GEAR_RATIO)
   
+  current_scale = 10000 * 230 / 255
+  exersizeMachine = ExersizeMachine(gear_ratio=GEAR_RATIO, kV=130, Iidle=1.1, Ddrum=0.04, current_scale=current_scale)
+  
+  extend_torque = exersizeMachine.lineForceToMotorTorque(30) - exersizeMachine.drag_torque
+  contract_torque = exersizeMachine.lineForceToMotorTorque(30) + exersizeMachine.drag_torque
+
+  print("extend_torque:", extend_torque, " contract_torque:", contract_torque)
+
+  extend_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(extend_torque)
+  if extend_torque_demand < 0:
+    extend_torque_demand = 0
+  
+  contract_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(contract_torque)
+  if contract_torque_demand < 0:
+    contract_torque_demand = 0
+      
   # 
   # " Motor type &  PWM configuration "
   # TMC4671.writeRegister(TMC4671.registers.MOTOR_TYPE_N_POLE_PAIRS, 0x00030000 | polePairs)
@@ -461,21 +479,21 @@ def main():
     
     flux_mA = float(flux) * 225 / 256
     torque_mA = float(torque) * 225 / 256
-    torque_mA = float(torque) * 225 / 256
+
     torque_motor_Nm = torque_mA * 0.0001
     torque_drum_Nm = torque_motor_Nm / GEAR_RATIO
-    force_line_N = torque_drum_Nm * (drum_diam * 0.5)
+    force_line_N = torque_drum_Nm / (drum_diam * 0.5)
     
     motor_rev_rate = velocity  / ( polePairs * 60 ) #float(1<<16) * 
     drum_rev_rate = motor_rev_rate * GEAR_RATIO
     line_velocity = drum_rev_rate * math.pi * drum_diam
 
-    str = "dist:{:<+2.3f} vel{:<1.3f} tor:{:<+3.0f} flux:{:<5.0f}".format(line_postion,  line_velocity, force_line_N, flux_mA)
+    str = "dist:{:<+2.3f} vel{:<1.3f} force:{:<+3.1f} flux:{:<5.0f}".format(line_postion,  line_velocity, force_line_N, flux_mA)
     print(str)
-    if(velocity < 50):
-      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 700)
+    if(line_velocity < 0.01):
+      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, extend_torque_demand )
     else:
-      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, 3000)
+      TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, contract_torque_demand )
 
 
       

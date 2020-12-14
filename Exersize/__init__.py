@@ -1,11 +1,11 @@
 '''
-Created on 30.12.2018
+Created on 12.12.2020
 
-@author: ED
+@author: Matt
 '''
 
 name = "Exersize"
-desc = "Exersize Machine Patterns"
+desc = "Exersize patterns and updates"
 
 def showInfo():
     print(name + " - " + desc)
@@ -17,9 +17,10 @@ class ExersizeSetting():
     self.position_target = position_target
     self.acceleration_target = acceleration_target
     
+    
 class Exersize():
   def inital_setting(self, position, velocity, force_N, flux_mA):
-    return ExersizeSetting(10, 0.1, 0, 10)
+    return ExersizeSetting(10, 0.1, 20, 10)
   
   def update_setting(self, position, velocity, force_N, flux_mA):
     return ExersizeSetting()

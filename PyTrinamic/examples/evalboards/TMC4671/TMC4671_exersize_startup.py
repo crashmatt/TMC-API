@@ -318,19 +318,7 @@ def main():
   
   current_scale = 10000 * 230 / 255
   exersizeMachine = ExersizeMachine(gear_ratio=GEAR_RATIO, kV=130, Iidle=1.1, Ddrum=0.04, current_scale=current_scale)
-  
-  extend_torque = exersizeMachine.lineForceToMotorTorque(30) - exersizeMachine.drag_torque
-  contract_torque = exersizeMachine.lineForceToMotorTorque(30) + exersizeMachine.drag_torque
 
-  print("extend_torque:", extend_torque, " contract_torque:", contract_torque)
-
-  extend_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(extend_torque)
-  if extend_torque_demand < 0:
-    extend_torque_demand = 0
-  
-  contract_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(contract_torque)
-  if contract_torque_demand < 0:
-    contract_torque_demand = 0
       
   # 
   # " Motor type &  PWM configuration "
@@ -477,18 +465,31 @@ def main():
     drum_position = motor_position * GEAR_RATIO
     line_postion = drum_position * (math.pi * drum_diam)
     
-    flux_mA = float(flux) * 225 / 256
-    torque_mA = float(torque) * 225 / 256
+    torque_motor_Nm = exersizeMachine.torqueDemandToMotorTorque(torque)    
+    force_line_N = exersizeMachine.motorTorqueToLineForce(torque_motor_Nm)
 
-    torque_motor_Nm = torque_mA * 0.0001
-    torque_drum_Nm = torque_motor_Nm / GEAR_RATIO
-    force_line_N = torque_drum_Nm / (drum_diam * 0.5)
+    #force_line_N = exersizeMachine.motorTorqueToLineForce(motor_torque)
     
-    motor_rev_rate = velocity  / ( polePairs * 60 ) #float(1<<16) * 
+    motor_rev_rate = velocity  / ( polePairs * 60 )
     drum_rev_rate = motor_rev_rate * GEAR_RATIO
     line_velocity = drum_rev_rate * math.pi * drum_diam
+    
+    exersize_setting = exersize.update_setting(position, velocity, force_line_N)
 
-    str = "dist:{:<+2.3f} vel{:<1.3f} force:{:<+3.1f} flux:{:<5.0f}".format(line_postion,  line_velocity, force_line_N, flux_mA)
+    extend_torque = exersizeMachine.lineForceToMotorTorque(exersize_setting.force_target) - exersizeMachine.drag_torque
+    contract_torque = exersizeMachine.lineForceToMotorTorque(exersize_setting.force_target) + exersizeMachine.drag_torque
+  
+#     print("extend_torque:", extend_torque, " contract_torque:", contract_torque)
+  
+    extend_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(extend_torque)
+    if extend_torque_demand < 0:
+      extend_torque_demand = 0
+    
+    contract_torque_demand = exersizeMachine.motorTorqueToTorqueDemand(contract_torque)
+    if contract_torque_demand < 0:
+      contract_torque_demand = 0
+
+    str = "dist:{:<+2.3f} vel{:<1.3f} force:{:<+3.1f}".format(line_postion,  line_velocity, force_line_N)
     print(str)
     if(line_velocity < 0.01):
       TMC4671.writeRegister(TMC4671.registers.PID_TORQUE_FLUX_LIMITS, extend_torque_demand )

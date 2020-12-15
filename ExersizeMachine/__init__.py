@@ -38,10 +38,14 @@ class ExersizeMachine():
   def motorTorqueToLineForce(self, motor_torque):
       drum_torque =  motor_torque * self.gear_ratio
       line_force = drum_torque / (self.drum_diam * 0.5)
+      return line_force
 
   def motorCurrentToMotorTorque(self, current):
       return self.motor_torque_constant * current
     
   def motorTorqueToTorqueDemand(self, torque):
       return int(torque * self.current_scale)
+
+  def torqueDemandToMotorTorque(self, demand):
+      return demand / self.current_scale
   

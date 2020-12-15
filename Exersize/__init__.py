@@ -19,9 +19,9 @@ class ExersizeSetting():
     
     
 class Exersize():
-  def inital_setting(self, position, velocity, force_N, flux_mA):
-    return ExersizeSetting(10, 0.1, 20, 10)
+  def inital_setting(self, position, velocity, force_N):
+    return ExersizeSetting(10, 0.1, 30, 10)
   
-  def update_setting(self, position, velocity, force_N, flux_mA):
-    return ExersizeSetting()
+  def update_setting(self, position, velocity, force_N):
+    return ExersizeSetting(force_target=30)
     
